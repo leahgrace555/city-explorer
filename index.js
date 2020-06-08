@@ -10,12 +10,7 @@ app.use(cors());
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
-  console.log('listening');
-})
-
-//error handling:
-app.get('*', (request,response) => {
-  response.send('oops.. something went wrong')
+  console.log(`${PORT}`);
 })
 
 function NewLocation(searchQuery, obj) {
@@ -34,4 +29,9 @@ app.get('/location', (request,response) => {
   } catch(err){
     response.status(500).send('whoops. Something went wrong');
   }
+})
+
+//error handling:
+app.get('*', (request,response) => {
+  response.send('oops.. something went wrong')
 })
