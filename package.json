@@ -1,0 +1,23 @@
+{
+  "name": "city-explorer",
+  "version": "1.0.0",
+  "description": "lab06",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leahgrace555/city-explorer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/leahgrace555/city-explorer/issues"
+  },
+  "homepage": "https://github.com/leahgrace555/city-explorer#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1"
+  }
+}
