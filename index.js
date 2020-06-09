@@ -14,8 +14,8 @@ app.listen(PORT, () => {
 })
 
 function NewLocation(searchQuery, obj) {
-  this.searchQuery = searchQuery;
-  this.formattedQuery = obj.display_name;
+  this.search_query = searchQuery;
+  this.formatted_query = obj.display_name;
   this.latitude = obj.lat;
   this.longitude = obj.lon;
 
@@ -26,8 +26,24 @@ app.get('/location', (request,response) => {
     let searchQuery = request.query.city;
     let geoData = require('./data/location.json');
     let returnObj = new NewLocation(searchQuery, geoData[0]);
+    response.status(200).send(returnObj);
   } catch(err){
     response.status(500).send('whoops. Something went wrong');
+  }
+})
+
+function Weather(obj) {
+  this.forecast = obj.weather.description;
+  this.time = obj.time;
+}
+
+app.get('/weather', (request,response) => {
+  try {
+    let weatherData = require('./data/weather.json');
+    let returnWeather = new Weather(weatherData[0]);
+    response.status(200).send(returnWeather);
+  } catch(err){
+    response.status(500).send('storm clouds a coming cuz we did something wrong')
   }
 })
 
@@ -35,3 +51,11 @@ app.get('/location', (request,response) => {
 app.get('*', (request,response) => {
   response.send('oops.. something went wrong')
 })
+
+//make weather constructor
+//need forecast and time properties
+// use description for forecast
+// in route: bring in weather.json
+//make empty array to push loop into
+// after, loop over "data" in weather.json
+//after loop, response.send the array
