@@ -39,9 +39,15 @@ function Weather(obj) {
 
 app.get('/weather', (request,response) => {
   try {
+    let weatherDays = []
     let weatherData = require('./data/weather.json');
-    let returnWeather = new Weather(weatherData[0]);
-    response.status(200).send(returnWeather);
+    weatherData.data.forEach( weatherDay => {
+      let day = new Weather(weatherDay);
+      weatherDays.push(day)
+      console.log(day);
+    })
+    new Weather(weatherData[0]);
+    response.status(200).send(weatherDays);
   } catch(err){
     response.status(500).send('storm clouds a coming cuz we did something wrong')
   }
