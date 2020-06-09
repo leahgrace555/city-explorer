@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const superagent = require('superagent');
 require('dotenv').config();
 
 const app = express();
@@ -21,35 +22,22 @@ function NewLocation(searchQuery, obj) {
 
 }
 
+
 app.get('/location', (request,response) => {
-  try {
-    let searchQuery = request.query.city;
-    let geoData = require('./data/location.json');
-    let returnObj = new NewLocation(searchQuery, geoData[0]);
-    response.status(200).send(returnObj);
-  } catch(err){
-    response.status(500).send('whoops. Something went wrong');
-  }
+  let searchQuery = request.query.city;
+
+  let url = `https://us1.locationiq.com/v1/search.php?key=${process.env.LOCATION_DATA}&q=${searchQuery}&format=json`;
+
+  superagent.get(url)
+    .then(resultsFromSuperAgent => {let locationObject = new NewLocation(searchQuery, resultsFromSuperAgent.body[0]);
+      response.status(200).send(locationObject);
+    })
 })
 
 function Weather(obj) {
   this.forecast = obj.weather.description;
   this.time = obj.datetime;
 }
-
-// app.get('/weather', (request,response) => {
-//   try {
-//     let weatherDays = []
-//     let weatherData = require('./data/weather.json');
-//     weatherData.data.forEach( weatherDay => {
-//       let day = new Weather(weatherDay);
-//       weatherDays.push(day)
-//     })
-//     response.status(200).send(weatherDays);
-//   } catch(err){
-//     response.status(500).send('storm clouds a coming cuz we did something wrong')
-//   }
-// })
 
 app.get('/weather', (request,response) => {
   try {
@@ -58,7 +46,6 @@ app.get('/weather', (request,response) => {
       let day = new Weather(weatherDay);
       console.log(day);
       return day;
-// console.log(weatherDay);
     })
     console.log(weatherDays)
     response.status(200).send(weatherDays);
