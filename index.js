@@ -4,13 +4,18 @@ const express = require('express');
 const superagent = require('superagent');
 require('dotenv').config();
 const cors = require('cors');
-
+const pg = require('pg');
 const app = express();
 app.use(cors());
-
 const PORT = process.env.PORT;
-app.listen(PORT, () => {
-  console.log(`${PORT}`);
+
+const client = new pg.Client(process.env.DATABASE_URL);
+client.on('error',err=>console.log(err));
+
+client.connect().then( ()=> {
+  app.listen(PORT, () => {
+    console.log(`${PORT}`);
+  })
 })
 
 function NewLocation(searchQuery, obj) {
@@ -22,13 +27,36 @@ function NewLocation(searchQuery, obj) {
 
 app.get('/location', (request,response) => {
   let searchQuery = request.query.city;
+  ///do first client.query
+  let sqlQuery = `SELECT * FROM location WHERE search_query = $1;`;
+  let safeValues = [searchQuery];
+  // determine sequel variables SELECT statement
+  //determine safe values variables
+  // chain a .then to your query
+  //inside .then, check if exists in database,
+  ///if exists, return the result to the client
+  //else it does not exist, then do the rest of this function with the superagent call
+  //let isThereACity = client.query.search_query
+  // let sqlQuery2 = "INSERT INTO hello (search_query, formatted_query, "
+  client.query(sqlQuery, safeValues)
+    .then(sqlResults => {
+      if(sqlResults.rowCount) {
+        console.log('chekcing database');
+        response.status(200).send(sqlResults.rows[0]);
+      } else{
+        let url = `https://us1.locationiq.com/v1/search.php?key=${process.env.LOCATION_DATA}&q=${searchQuery}&format=json`;
+        superagent.get(url)
+          .then(resultsFromSuperAgent => {
+            console.log('checking api')
+            let locationObject = new NewLocation(searchQuery, resultsFromSuperAgent.body[0]);
+            //query to insert this result into the database so we have it for next time
+            let sqlQuery2 = `insert into location (search_query, formatted_query, latitude, longitude) values ($1, $2, $3, $4);`
+            let safevalues2 = [searchQuery,locationObject.formatted_query,locationObject.latitude,locationObject.longitude]
 
-  let url = `https://us1.locationiq.com/v1/search.php?key=${process.env.LOCATION_DATA}&q=${searchQuery}&format=json`;
-
-  superagent.get(url)
-    .then(resultsFromSuperAgent => {let locationObject = new NewLocation(searchQuery, resultsFromSuperAgent.body[0]);
-      response.status(200).send(locationObject);
-    })
+            client.query(sqlQuery2, safevalues2);
+            response.status(200).send(locationObject);
+          })
+      }}).catch(err => console.log(err));
 })
 
 function Weather(obj) {
