@@ -30,14 +30,6 @@ app.get('/location', (request,response) => {
   ///do first client.query
   let sqlQuery = `SELECT * FROM location WHERE search_query = $1;`;
   let safeValues = [searchQuery];
-  // determine sequel variables SELECT statement
-  //determine safe values variables
-  // chain a .then to your query
-  //inside .then, check if exists in database,
-  ///if exists, return the result to the client
-  //else it does not exist, then do the rest of this function with the superagent call
-  //let isThereACity = client.query.search_query
-  // let sqlQuery2 = "INSERT INTO hello (search_query, formatted_query, "
   client.query(sqlQuery, safeValues)
     .then(sqlResults => {
       if(sqlResults.rowCount) {
@@ -59,76 +51,6 @@ app.get('/location', (request,response) => {
       }}).catch(err => console.log(err));
 })
 
-function Movies(obj){
-  this.title = obj.title;
-  this.overview = obj.overview;
-  this.average_votes = obj.vote_average;
-  this.total_votes = obj.vote_count;
-  this.image_url = `https://image.tmdb.org/t/p/w500${obj.poster_path}`;
-  this.popularity = obj.popularity;
-  this.released_on = obj.released_on;
-}
-
-app.get('/movies', (request,response) => {
-  let search_query = request.query.search_query;
-  // const movieQuery = request.query.search_query;
-  //const key = process.env.MOVIE_API_KEY;
-  // const url = `https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${movieQuery}`;
-  let url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&query=${search_query}`
-
-  superagent.get(url)
-    //.query( {
-    //   city: search_query,
-    //   key: process.env.MOVIE_API_KEY,
-    // })
-    .then(resultsFromSuperAgent => {
-     // console.log(resultsFromSuperAgent.body);
-      let movieResults = resultsFromSuperAgent.body.results.map(film => {
-        let eachFilm = new Movies(film);
-        return eachFilm
-      })
-      response.status(200).send(movieResults);
-    }).catch(err => console.log(err));
-})
-
-function Yelp(obj){
-  this.name = obj.name;
-  this.image_url = obj.image_url;
-  this.price = obj.price;
-  this.rating = obj.rating;
-  this.url = obj.url;
-}
-
-app.get('/yelp', (request,response) => {
-  let search_query = request.query.search_query;
-  let lat = request.query.latitude
-  let lon = request.query.longitude
-  const numPerPage = 5;
-  //const startAt = (pagq-1)*numPerPage;
-
-  let queryParams = {
-    //lat: lat,
-    //lng: lon,
-    count: numPerPage,
-    categories: 'restaurants',
-    limit: 5
-  }
-
-  let url = `https://api.yelp.com/v3/businesses/search?latitude=${lat}&longitude=${lon}`
-
-  superagent.get(url,queryParams)
-    .set({'Authorization': `Bearer ${process.env.YELP_API_KEY}`})
-    .query(queryParams)
-    .then(data => {
-      console.log(data.body.businesses)
-      let yelpResults = data.body.businesses.map( restaurant => {
-        let newRestaurant = new Yelp(restaurant);
-        return newRestaurant;
-      })
-      response.status(200).send(yelpResults);
-    })
-})
-
 function Weather(obj) {
   this.forecast = obj.weather.description;
   this.time = obj.datetime;
@@ -141,8 +63,6 @@ app.get('/weather', (request,response) => {
 
   superagent.get(url)
     .then(resultsFromSuperAgent => {
-      //do something
-      //console.log(resultsFromSuperAgent.body.data);
       let weatherDays = resultsFromSuperAgent.body.data.map( weatherDay => {
         let day = new Weather(weatherDay);
         console.log(day);
@@ -150,6 +70,34 @@ app.get('/weather', (request,response) => {
       });
       console.log(weatherDays)
       response.status(200).send(weatherDays);
+    }).catch(err => console.log(err));
+})
+
+function Movies(obj){
+  this.title = obj.title;
+  this.overview = obj.overview;
+  this.average_votes = obj.average_votes;
+  this.total_votes = obj.total_votes;
+  this.image_url = obj.image_url;
+  this.popularity = obj.popularity;
+  this.released_on = obj.released_on;
+}
+
+app.get('/movies', (request,response) => {
+  let search_query = request.query.search_query;
+  let url = `https://api.themoviedb.org/3/movie/550?api_key=${process.env.MOVIE_API_KEY}`
+
+  superagent.get(url)
+    .query( {
+      city: search_query,
+      key: process.env.MOVIE_API_KEY,
+    })
+    .then(resultsFromSuperAgent => {
+      let movieResults = resultsFromSuperAgent.body.data.map( film => {
+        let eachFilm = new Movies(film);
+        return eachFilm
+      })
+      response.status(200).send(movieResults);
     }).catch(err => console.log(err));
 })
 
@@ -182,15 +130,8 @@ app.get('/trails', (request, response) => {
       response.status(200).send(trailResults);
     }).catch(err => console.log(err));
 })
-//error handling:
-app.get('*', (request,response) => {
-  response.send('oops.. something went wrong')
-})
-
-//make weather constructor
-//need forecast and time properties
-// use description for forecast
-// in route: bring in weather.json
-//make empty array to push loop into
-// after, loop over "data" in weather.json
-//after loop, response.send the array
+// client.connect().then( () =>{
+//   app.get('*', (request,response) => {
+//     response.send('oops.. something went wrong')
+//   })
+// })
